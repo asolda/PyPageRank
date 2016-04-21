@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 from numpy import add, dot, multiply
+from math import sqrt
+from joblib import Parallel, delayed
 
 #with prob 1 - s crawler is "teleported" (dead ends and spider traps avoidance)
 #confidence: stop condition (vectors difference < confidence)
@@ -66,3 +68,49 @@ def OptPageRank(graph, s, step, confidence):
             done = True
 
     return rank, time
+
+# multiply a block of the matrix and a block of the vector
+def execute(sgraph, sdegree, srank, s):
+    nodes = sgraph.keys()
+    
+    tmp = dict()
+    
+    for i in nodes:
+        for j in sgraph[i]:
+            if j not in tmp:
+                tmp[j] = 0
+            tmp[j] = float(s*rank[i])/sdegree[i]
+            
+    return tmp
+
+
+# param n is number of nodes
+def ParallelPageRank(graph, degree, n, s, step, confidence, num_jobs):
+    done = False
+    time = 0
+    
+    k = int(sqrt(num_jobs))
+
+    # init
+
+    rank = []
+    
+    for i in range(k):
+        rank[i] = dict()
+        for j in degree[i].keys():
+            rank[i][j] = float(1)/n
+            
+    tmp = []
+    for i in range(k):
+        tmp[i] = dict()
+
+    # add backend = "threading" to spawn thread insted of processes
+    with Parallel(n_jobs=num_jobs) as parallel:
+        while not done and time < step:
+            time += 1
+            
+            result=parallel(delayed(execute)(graph[i][j], degree[i], rank[i], s)
+                for j in range(k) for i in range(k))
+            
+            return result
+    return time, rank
