@@ -104,14 +104,14 @@ def parallelPageRank(graph,degree,n,s,step,confidence,num_jobs):
   #Block[i] contains the info of nodes in the i-th subset.
   
   #Info: rank
-  rank = []
+  rank = dict()
   for i in range(k):
       rank[i]=dict()
       for j in degree[i].keys():
           rank[i][j]=float(1)/n #Initial value
   
   #Info: temporary rank
-  tmp=[]
+  tmp= dict()
   for i in range(k):
     tmp[i] = dict()
     
